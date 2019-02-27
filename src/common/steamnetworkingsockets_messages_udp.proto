@@ -5,7 +5,7 @@
 //
 //=============================================================================
 syntax = "proto2";
-option optimize_for = SPEED;
+option optimize_for = LITE_RUNTIME;
 
 // We don't use the service generation functionality
 option cc_generic_services = false;

@@ -56,6 +56,7 @@
 #include "keypair.h"
 #include <tier0/memdbgoff.h>
 #include <steamnetworkingsockets_messages_certs.pb.h>
+#include <set>
 
 // Redefine the macros for byte-swapping, to sure the correct
 // argument size.  We probably should move this into platform.h,
