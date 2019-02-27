@@ -89,9 +89,9 @@ bool BSteamNetworkingIdentityFromLegacyBinaryProtobuf( SteamNetworkingIdentity &
 		return false;
 	}
 
-	if ( msgIdentity.unknown_fields().field_count() > 0 )
+  if ( msgIdentity.unknown_fields().size() > 0 )
 	{
-		V_sprintf_safe( errMsg, "Unrecognized identity format.  (%d unknown field(s), first ID=%d)", msgIdentity.unknown_fields().field_count(), msgIdentity.unknown_fields().field(0).number() );
+    V_sprintf_safe( errMsg, "Unrecognized identity format. UnknownField = %s)", msgIdentity.unknown_fields().c_str() );
 	}
 	else if ( ProtoMsgByteSize( msgIdentity ) == 0 )
 	{

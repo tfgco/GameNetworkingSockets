@@ -153,8 +153,8 @@ macro(gamenetworkingsockets_common GNS_TARGET)
 	)
 
 	target_link_libraries(${GNS_TARGET} PUBLIC
-		# protobuf::libprotobuf
-		${PROTOBUF_LIBRARIES}
+		#protobuf::libprotobuf-lite
+		${Protobuf_LITE_LIBRARIES}
 		Threads::Threads
 	)
 
@@ -208,6 +208,14 @@ macro(gamenetworkingsockets_common GNS_TARGET)
 		target_compile_definitions(${GNS_TARGET} PUBLIC POSIX LINUX)
 	elseif(CMAKE_SYSTEM_NAME MATCHES Darwin)
 		target_compile_definitions(${GNS_TARGET} PUBLIC POSIX OSX)
+	elseif(CMAKE_SYSTEM_NAME MATCHES Android)
+		target_compile_definitions(${GNS_TARGET} PUBLIC POSIX ANDROID)
+		find_library (android-log-lib log)
+
+		target_link_libraries(${GNS_TARGET} PRIVATE
+			${android-log-lib}
+		)
+		set(CMAKE_ANDROID_STL_TYPE "c++_shared")
 	elseif(CMAKE_SYSTEM_NAME MATCHES Windows)
 		target_compile_definitions(${GNS_TARGET} PUBLIC WIN32)
 		if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
