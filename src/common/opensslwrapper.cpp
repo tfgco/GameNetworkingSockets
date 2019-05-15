@@ -23,7 +23,6 @@
 
 // Statics - all automatically zero-init
 int COpenSSLWrapper::m_nInstances;
-static std::recursive_mutex *s_pMutexArray;
 int COpenSSLWrapper::s_nContextDataIndex;
 int COpenSSLWrapper::s_nConnectionDataIndex;
 
@@ -101,14 +100,6 @@ void COpenSSLWrapper::Initialize()
 //SDR_PUBLIC 			SSL_load_error_strings();
 //SDR_PUBLIC 			ERR_load_BIO_strings();
 
-		s_pMutexArray = new std::recursive_mutex[CRYPTO_num_locks()];
-		CRYPTO_set_locking_callback( COpenSSLWrapper::OpenSSLLockingCallback );
-		CRYPTO_set_id_callback( COpenSSLWrapper::OpenSSLThreadIDCallback );
-
-		CRYPTO_set_dynlock_create_callback( COpenSSLWrapper::OpenSSLDynLockCreateCallback );
-		CRYPTO_set_dynlock_destroy_callback( COpenSSLWrapper::OpenSSLDynLockDestroyCallback );
-		CRYPTO_set_dynlock_lock_callback( COpenSSLWrapper::OpenSSLDynLockLockCallback );
-
 //SDR_PUBLIC		OpenSSL_add_all_algorithms();
 //SDR_PUBLIC
 //SDR_PUBLIC		COpenSSLWrapper::s_nContextDataIndex = SSL_get_ex_new_index(0, (void*)"COpenSSLContext", NULL, NULL, NULL);
@@ -145,7 +136,6 @@ void COpenSSLWrapper::Shutdown()
 //SDR_PUBLIC		 * variable abuse in OpenSSL. */
 //SDR_PUBLIC		ERR_free_strings();
 //SDR_PUBLIC		ERR_remove_state(0);
-		CRYPTO_cleanup_all_ex_data();
 
 //#ifdef _DEBUG
 //		// This isn't great right now, as it will report leaks on unload of steamclient.dll in the server, due to server.dll still
@@ -156,15 +146,6 @@ void COpenSSLWrapper::Shutdown()
 //		//	Msg( CFmtStr1024( "OpenSSL memory still used: %s\n", V_pretifymem( (float)m_nBytesLeaked, 2 ) ).Access() );
 //#endif
 
-		CRYPTO_set_locking_callback( NULL );
-		CRYPTO_set_id_callback( NULL );
-
-		CRYPTO_set_dynlock_create_callback( NULL );
-		CRYPTO_set_dynlock_destroy_callback( NULL );
-		CRYPTO_set_dynlock_lock_callback( NULL );
-
-		delete[] s_pMutexArray;
-		s_pMutexArray = NULL;
 	}
 }
 
@@ -174,18 +155,6 @@ void COpenSSLWrapper::Shutdown()
 //-----------------------------------------------------------------------------
 void COpenSSLWrapper::OpenSSLLockingCallback( int mode, int type, const char *file, int line )
 {
-	// We are shutting down if this is NULL, won't need locking as we only have the main thread then right?
-	if ( s_pMutexArray == NULL )
-		return;
-
-	if ( mode & CRYPTO_LOCK )
-	{
-		s_pMutexArray[type].lock();
-	}
-	else
-	{
-		s_pMutexArray[type].unlock();
-	}
 }
 
 
@@ -222,7 +191,7 @@ void COpenSSLWrapper::OpenSSLDynLockDestroyCallback( CRYPTO_dynlock_value * l, c
 //-----------------------------------------------------------------------------
 void COpenSSLWrapper::OpenSSLDynLockLockCallback( int mode, CRYPTO_dynlock_value *l, const char* file, int line )
 {
-	if ( mode & CRYPTO_LOCK )
+	if ( mode & 1 )
 	{
 		l->m_Mutex.lock();
 	}
