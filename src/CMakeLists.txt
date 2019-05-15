@@ -214,7 +214,7 @@ macro(gamenetworkingsockets_common GNS_TARGET)
 
 	if(CMAKE_SYSTEM_NAME MATCHES Linux)
 		target_compile_definitions(${GNS_TARGET} PUBLIC POSIX LINUX)
-	elseif(CMAKE_SYSTEM_NAME MATCHES Darwin)
+	elseif(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
 		target_compile_definitions(${GNS_TARGET} PUBLIC POSIX OSX)
 	elseif(CMAKE_SYSTEM_NAME MATCHES Android)
 		target_compile_definitions(${GNS_TARGET} PUBLIC POSIX ANDROID)
