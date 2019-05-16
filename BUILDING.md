@@ -108,10 +108,32 @@ Or CMake:
 ```
 $ mkdir build
 $ cd build
-$ cmake -G Ninja ..
+$ cmake -G Ninja -DProtobuf_USE_STATIC_LIBS=on -DCMAKE_BUILD_TYPE=MinSizeRel ../
 $ ninja
 ```
 
+### Mac OS
+```
+$ mkdir build-osx
+$ cd build-osx
+$ cmake -G Ninja -DProtobuf_USE_STATIC_LIBS=on -DCMAKE_BUILD_TYPE=MinSizeRel ../
+```
+
+### Android
+Set TFG_PREBUILT_REPO_DIR to the dir where you cloned https://github.com/tfgco/pre-built-public-libs and NDK_DIR and then run:
+```
+$ mkdir build-android
+$ cd build-android
+$ cmake . ../ -DProtobuf_INCLUDE_DIR=$TFG_PREBUILT_REPO_DIR/android/armv7-a/libprotobuf/3.7.0/ -DProtobuf_LITE_LIBRARY=$TFG_PREBUILT_REPO_DIR/android/armv7-a/libprotobuf/3.7.0/libprotobuf-lite.a -DProtobuf_LIBRARIES=$TFG_PREBUILT_REPO_DIR/android/armv7-a/libprotobuf/3.7.0/ -DCMAKE_TOOLCHAIN_FILE=$NDK_DIR/build/cmake/android.toolchain.cmake -DOPENSSL_CRYPTO_LIBRARY=$TFG_PREBUILT_REPO_DIR/android/armv7-a/openssl/1.1.1b/libcrypto.a -DOPENSSL_INCLUDE_DIR=$TFG_PREBUILT_REPO_DIR/android/armv7-a/openssl/1.1.1b/include -DCMAKE_SYSTEM_NAME=Android -DUSE_BCRYPT=off -DOPENSSL_HAS_25519_RAW=on -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a -GNinja
+```
+
+### iOS
+Set TFG_PREBUILT_REPO_DIR to the dir where you cloned https://github.com/tfgco/pre-built-public-libs and then run:
+```
+$ mkdir build-ios
+$ cd build-ios
+$ OPENSSL_ROOT_DIR=$TFG_PREBUILT_REPO_DIR/ios/openssl/1.1.1b/ cmake ../ -DProtobuf_LITE_LIBRARY=$TFG_PREBUILT_REPO_DIR/ios/protobuf/3.7.0/lib/libprotobuf-lite.a -DProtobuf_LIBRARIES=$TFG_PREBUILT_REPO_DIR/ios/protobuf/3.7.0/lib -DCMAKE_TOOLCHAIN_FILE=$TFG_PREBUILT_REPO_DIR/ios.toolchain.cmake -DIOS_PLATFORM=OS -DProtobuf_INCLUDE_DIR=$TFG_PREBUILT_REPO_DIR/ios/protobuf/3.7.0/include -DOPENSSL_INCLUDE_DIR=$TFG_PREBUILT_REPO_DIR/ios/openssl/1.1.1b/include -DOPENSSL_CRYPTO_LIBRARY=$TFG_PREBUILT_REPO_DIR/ios/openssl/1.1.1b/libcrypto.a -DUSE_BCRYPT=false -DENABLE_BITCODE=false -DCMAKE_BUILD_TYPE=MinSizeRel
+```
 
 ### MSYS2
 
