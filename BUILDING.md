@@ -127,6 +127,8 @@ $ cd build-android
 $ cmake . ../ -DProtobuf_INCLUDE_DIR=$TFG_PREBUILT_REPO_DIR/android/armv7-a/libprotobuf/3.7.0/ -DProtobuf_LITE_LIBRARY=$TFG_PREBUILT_REPO_DIR/android/armv7-a/libprotobuf/3.7.0/libprotobuf-lite.a -DProtobuf_LIBRARIES=$TFG_PREBUILT_REPO_DIR/android/armv7-a/libprotobuf/3.7.0/ -DCMAKE_TOOLCHAIN_FILE=$NDK_DIR/build/cmake/android.toolchain.cmake -DOPENSSL_CRYPTO_LIBRARY=$TFG_PREBUILT_REPO_DIR/android/armv7-a/openssl/1.1.1b/libcrypto.a -DOPENSSL_INCLUDE_DIR=$TFG_PREBUILT_REPO_DIR/android/armv7-a/openssl/1.1.1b/include -DCMAKE_SYSTEM_NAME=Android -DUSE_BCRYPT=off -DOPENSSL_HAS_25519_RAW=on -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a -GNinja
 ```
 
+for 64bit builds use: -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_SYSTEM_VERSION=21 -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21
+
 ### iOS
 Set TFG_PREBUILT_REPO_DIR to the dir where you cloned https://github.com/tfgco/pre-built-public-libs and then run:
 ```
