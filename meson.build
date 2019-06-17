@@ -48,7 +48,7 @@ warn_flags_common = [
 
 werror = get_option('Werror')
 if werror
-  warn_flags_common += [ '-Werror' ]
+  warn_flags_common += [ '-Werror', '-Wno-unused-value', '-Wno-unused-variable' ]
 endif
 
 warn_flags_c = [
