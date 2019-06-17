@@ -1,4 +1,4 @@
-# GameNetworkingSockets [![Build Status](https://travis-ci.org/ValveSoftware/GameNetworkingSockets.svg?branch=master)](https://travis-ci.org/ValveSoftware/GameNetworkingSockets)
+# GameNetworkingSockets [![Build Status](https://travis-ci.org/tfgco/GameNetworkingSockets.svg?branch=master)](https://travis-ci.org/tfgco/GameNetworkingSockets)
 
 GameNetworkingSockets is a basic transport layer for games.  The features are:
 
