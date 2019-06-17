@@ -54,13 +54,13 @@
 
 
 #ifdef STEAM 
-#if ( !defined(_PS3) || defined(_DEBUG) )
+#if ( !defined(_PS3) && defined(_DEBUG) )
 #define DBGFLAG_VALIDATE		// validate is enabled in release, but only for counting memory, not for validating it
 #endif
 #endif // STEAM
 
 // Asserts are off for release on PS3
-#if ( !defined(_PS3) || defined(_DEBUG) )
+#if ( !defined(_PS3) && defined(_DEBUG) )
 #define DBGFLAG_ASSERT			// asserts are enabled in release (but no dialog; they just spew to console)
 #define DBGFLAG_MINIDUMPONASSERT
 #define DBGFLAG_ASSERTFATAL		// fatal asserts are enabled in relase (no dialog; spew to console then app exit)

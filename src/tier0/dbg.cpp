@@ -91,6 +91,9 @@ bool Plat_IsInDebugSession()
 #else
 	return snIsDebuggerPresent();
 #endif
+#else
+  //TODO we need to correctly handle other platforms such as Android and iOS.
+  return false;
 #endif
 }
 
