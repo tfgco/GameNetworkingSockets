@@ -108,7 +108,10 @@ set(GNS_COMMON_FLAGS
 if(WERROR)
 	set(GNS_COMMON_FLAGS
 		${GNS_COMMON_FLAGS}
-		-Werror)
+		-Werror
+		-Wno-unused-value
+		-Wno-unused-variable
+		)
 endif()
 
 set(GNS_C_FLAGS
@@ -211,7 +214,7 @@ macro(gamenetworkingsockets_common GNS_TARGET)
 		target_compile_definitions(${GNS_TARGET} PUBLIC POSIX ANDROID)
 		find_library (android-log-lib log)
 
-		target_link_libraries(${GNS_TARGET} PRIVATE
+		target_link_libraries(${GNS_TARGET} PUBLIC
 			${android-log-lib}
 		)
 		set(CMAKE_ANDROID_STL_TYPE "c++_shared")
