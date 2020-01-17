@@ -18,6 +18,7 @@ extern "C" {
 
 STEAMNETWORKINGSOCKETS_INTERFACE HSteamListenSocket SteamAPI_ISteamNetworkingSockets_CreateListenSocketIP( intptr_t instancePtr, const SteamNetworkingIPAddr *pAddress, int nOptions, const SteamNetworkingConfigValue_t *pOptions );
 STEAMNETWORKINGSOCKETS_INTERFACE HSteamNetConnection SteamAPI_ISteamNetworkingSockets_ConnectByIPAddress( intptr_t instancePtr, const SteamNetworkingIPAddr *pAddress, int nOptions, const SteamNetworkingConfigValue_t *pOptions );
+STEAMNETWORKINGSOCKETS_INTERFACE HSteamNetConnection SteamAPI_ISteamNetworkingSockets_ConnectByIPAddressWithProxy( intptr_t instancePtr, const SteamNetworkingIPAddr *pProxyAddress, const SteamNetworkingIPAddr *pAddress, int nOptions, const SteamNetworkingConfigValue_t *pOptions );
 #ifdef STEAMNETWORKINGSOCKETS_ENABLE_SDR
 STEAMNETWORKINGSOCKETS_INTERFACE HSteamNetConnection SteamAPI_ISteamNetworkingSockets_CreateListenSocketP2P( intptr_t instancePtr, int nVirtualPort, int nOptions, const SteamNetworkingConfigValue_t *pOptions );
 STEAMNETWORKINGSOCKETS_INTERFACE HSteamNetConnection SteamAPI_ISteamNetworkingSockets_ConnectP2P( intptr_t instancePtr, const SteamNetworkingIdentity *pIdentity, int nVirtualPort, int nOptions, const SteamNetworkingConfigValue_t *pOptions );

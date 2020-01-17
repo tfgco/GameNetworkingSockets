@@ -62,10 +62,10 @@ public:
 	/// Packets sent through this method are subject to fake loss (steamdatagram_fakepacketloss_send),
 	/// lag (steamdatagram_fakepacketlag_send and steamdatagram_fakepacketreorder_send), and
 	/// duplication (steamdatagram_fakepacketdup_send)
-	bool BSendRawPacket( const void *pPkt, int cbPkt, const netadr_t &adrTo ) const;
+	virtual bool BSendRawPacket( const void *pPkt, int cbPkt, const netadr_t &adrTo ) const;
 
 	/// Gather-based send.  Simulated lag, loss, etc are applied
-	bool BSendRawPacketGather( int nChunks, const iovec *pChunks, const netadr_t &adrTo ) const;
+	virtual bool BSendRawPacketGather( int nChunks, const iovec *pChunks, const netadr_t &adrTo ) const;
 
 	/// Logically close the socket.  This might not actually close the socket IMMEDIATELY,
 	/// there may be a slight delay.  (On the order of a few milliseconds.)  But you will not
@@ -149,6 +149,10 @@ protected:
 /// Get a socket to talk to a single host.  The underlying socket won't be
 /// shared with anybody else.
 extern IBoundUDPSocket *OpenUDPSocketBoundToHost( const netadr_t &adrRemote, CRecvPacketCallback callback, SteamDatagramErrMsg &errMsg );
+
+/// Get a socket to talk to a single host using the UDP proxy.  The underlying socket won't be
+/// shared with anybody else.
+extern IBoundUDPSocket *OpenUDPSocketBoundToHostUsingProxy( const netadr_t &adrProxy, const netadr_t &adrRemote, CRecvPacketCallback callback, SteamDatagramErrMsg &errMsg );
 
 /// Create a pair of sockets that are bound to talk to each other.
 extern bool CreateBoundSocketPair( CRecvPacketCallback callback1, CRecvPacketCallback callback2, IBoundUDPSocket **ppOutSockets, SteamDatagramErrMsg &errMsg );

@@ -151,13 +151,18 @@ inline int GetLastSocketError()
 	#endif
 }
 
+// When using UDP proxy, is added in the end of the payload
+// some informations about target server [isIpv6//IP//Port]
+// in the worst case we need 19bytes to support Ipv6
+const int k_cbSteamNetworkingSocketsProxyDataLen = 19;
+
 /// Max size of UDP payload.  Includes API payload and
 /// any headers, but does not include IP/UDP headers
 /// (IP addresses, ports, checksum, etc.
 const int k_cbSteamNetworkingSocketsMaxUDPMsgLen = 1300;
 
 /// Do not allow MTU to be set less than this
-const int k_cbSteamNetworkingSocketsMinMTUPacketSize = 200;
+const int k_cbSteamNetworkingSocketsMinMTUPacketSize = 180;
 
 /// Overhead that we will reserve for stats, etc when calculating the max
 /// message that we won't fragment

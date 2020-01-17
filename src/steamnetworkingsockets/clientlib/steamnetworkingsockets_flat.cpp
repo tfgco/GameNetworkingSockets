@@ -16,6 +16,11 @@ STEAMNETWORKINGSOCKETS_INTERFACE HSteamNetConnection SteamAPI_ISteamNetworkingSo
 	return ((ISteamNetworkingSockets*)instancePtr)->ConnectByIPAddress( *pAddress, nOptions, pOptions );
 }
 
+STEAMNETWORKINGSOCKETS_INTERFACE HSteamNetConnection SteamAPI_ISteamNetworkingSockets_ConnectByIPAddressWithProxy( intptr_t instancePtr, const SteamNetworkingIPAddr *pProxyAddress, const SteamNetworkingIPAddr *pAddress, int nOptions, const SteamNetworkingConfigValue_t *pOptions )
+{
+  	return ((ISteamNetworkingSockets*)instancePtr)->ConnectByIPAddressWithProxy( *pProxyAddress, *pAddress, nOptions, pOptions );
+}
+
 #ifdef STEAMNETWORKINGSOCKETS_ENABLE_SDR
 STEAMNETWORKINGSOCKETS_INTERFACE HSteamNetConnection SteamAPI_ISteamNetworkingSockets_CreateListenSocketP2P( intptr_t instancePtr, int nVirtualPort, int nOptions, const SteamNetworkingConfigValue_t *pOptions )
 {

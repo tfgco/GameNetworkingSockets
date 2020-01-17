@@ -86,6 +86,8 @@ public:
 	/// SteamNetworkingConfigValue_t for more about why this is preferable to
 	/// setting the options "immediately" after creation.
 	virtual HSteamNetConnection ConnectByIPAddress( const SteamNetworkingIPAddr &address, int nOptions, const SteamNetworkingConfigValue_t *pOptions ) = 0;
+  
+	virtual HSteamNetConnection ConnectByIPAddressWithProxy( const SteamNetworkingIPAddr &proxyAddress, const SteamNetworkingIPAddr &address, int nOptions, const SteamNetworkingConfigValue_t *pOptions ) = 0;
 
 #ifdef STEAMNETWORKINGSOCKETS_ENABLE_SDR
 	/// P2P stfuf

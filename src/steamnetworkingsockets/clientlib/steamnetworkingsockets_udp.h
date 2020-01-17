@@ -79,6 +79,7 @@ public:
 	IBoundUDPSocket *m_pSocket;
 
 	bool BConnect( const netadr_t &netadrRemote, SteamDatagramErrMsg &errMsg );
+	bool BConnectWithProxy( const netadr_t &proxyAdr, const netadr_t &netadrRemote, SteamDatagramErrMsg &errMsg );
 	bool BAccept( CSharedSocket *pSharedSock, const netadr_t &netadrRemote, SteamDatagramErrMsg &errMsg );
 
 	void SendConnectOK( SteamNetworkingMicroseconds usecNow );
@@ -133,6 +134,7 @@ public:
 
 	/// Initiate a connection
 	bool BInitConnect( const SteamNetworkingIPAddr &addressRemote, int nOptions, const SteamNetworkingConfigValue_t *pOptions, SteamDatagramErrMsg &errMsg );
+	bool BInitConnectWithProxy( const SteamNetworkingIPAddr &proxyAddress, const SteamNetworkingIPAddr &addressRemote, int nOptions, const SteamNetworkingConfigValue_t *pOptions, SteamDatagramErrMsg &errMsg );
 
 	/// Accept a connection that has passed the handshake phase
 	bool BBeginAccept(

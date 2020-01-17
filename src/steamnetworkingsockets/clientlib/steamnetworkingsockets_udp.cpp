@@ -490,12 +490,12 @@ void CSteamNetworkListenSocketDirectUDP::SendMsg( uint8 nMsgID, const google::pr
 		return;
 	}
 
-	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen ];
+	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen + k_cbSteamNetworkingSocketsProxyDataLen];
 	pkt[0] = nMsgID;
 	int cbPkt = ProtoMsgByteSize( msg )+1;
-	if ( cbPkt > sizeof(pkt) )
+	if ( cbPkt > (sizeof(pkt) - sizeof(uint8) * k_cbSteamNetworkingSocketsProxyDataLen) )
 	{
-		AssertMsg3( false, "Msg type %d is %d bytes, larger than MTU of %d bytes", int( nMsgID ), int( cbPkt ), (int)sizeof(pkt) );
+		AssertMsg3( false, "Msg type %d is %d bytes, larger than MTU of %d bytes", int( nMsgID ), int( cbPkt ), (int)(sizeof(pkt) - sizeof(uint8) * k_cbSteamNetworkingSocketsProxyDataLen) );
 		return;
 	}
 	uint8 *pEnd = msg.SerializeWithCachedSizesToArray( pkt+1 );
@@ -508,7 +508,7 @@ void CSteamNetworkListenSocketDirectUDP::SendMsg( uint8 nMsgID, const google::pr
 void CSteamNetworkListenSocketDirectUDP::SendPaddedMsg( uint8 nMsgID, const google::protobuf::MessageLite &msg, const netadr_t adrTo )
 {
 
-	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen ];
+	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen + k_cbSteamNetworkingSocketsProxyDataLen];
 	memset( pkt, 0, sizeof(pkt) ); // don't send random bits from our process memory over the wire!
 	UDPPaddedMessageHdr *hdr = (UDPPaddedMessageHdr *)pkt;
 	int nMsgLength = ProtoMsgByteSize( msg );
@@ -683,7 +683,7 @@ int CConnectionTransportUDP::SendEncryptedDataChunk( const void *pChunk, int cbC
 
 	UDPSendPacketContext_t &ctx = static_cast<UDPSendPacketContext_t &>( ctxBase );
 
-	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen ];
+	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen + k_cbSteamNetworkingSocketsProxyDataLen];
 	UDPDataMsgHdr *hdr = (UDPDataMsgHdr *)pkt;
 	hdr->m_unMsgFlags = 0x80;
 	Assert( m_connection.m_unConnectionIDRemote != 0 );
@@ -775,6 +775,23 @@ bool CConnectionTransportUDP::BConnect( const netadr_t &netadrRemote, SteamDatag
 	return true;
 }
 
+bool CConnectionTransportUDP::BConnectWithProxy( const netadr_t &proxyAdr, const netadr_t &netadrRemote, SteamDatagramErrMsg &errMsg )
+{
+
+	// Create an actual OS socket.  We'll bind it to talk only to this host.
+	// (Note: we might not actually "bind" it at the OS layer, but from our perpsective
+	// it is bound.)
+	//
+	// For now we're just assuming each connection will gets its own socket,
+	// on an ephemeral port.  Later we could add a setting to enable
+	// sharing of the socket or binding to a particular local address.
+	Assert( !m_pSocket );
+	m_pSocket = OpenUDPSocketBoundToHostUsingProxy( netadrRemote, proxyAdr, CRecvPacketCallback( PacketReceived, this ), errMsg );
+	if ( !m_pSocket )
+		return false;
+	return true;
+}
+
 bool CConnectionTransportUDP::BAccept( CSharedSocket *pSharedSock, const netadr_t &netadrRemote, SteamDatagramErrMsg &errMsg )
 {
 	// Get an interface that is bound to talk to this address
@@ -850,6 +867,71 @@ bool CSteamNetworkConnectionUDP::BInitConnect( const SteamNetworkingIPAddr &addr
 	// Create transport.
 	CConnectionTransportUDP *pTransport = new CConnectionTransportUDP( *this );
 	if ( !pTransport->BConnect( netadrRemote, errMsg ) )
+	{
+		pTransport->TransportDestroySelfNow();
+		return false;
+	}
+	m_pTransport = pTransport;
+
+	// Let base class do some common initialization
+	SteamNetworkingMicroseconds usecNow = SteamNetworkingSockets_GetLocalTimestamp();
+	if ( !CSteamNetworkConnectionBase::BInitConnection( usecNow, nOptions, pOptions, errMsg ) )
+	{
+		DestroyTransport();
+		return false;
+	}
+
+	// Start the connection state machine, and send the first request packet.
+	CheckConnectionStateAndSetNextThinkTime( usecNow );
+
+	return true;
+}
+
+bool CSteamNetworkConnectionUDP::BInitConnectWithProxy( const SteamNetworkingIPAddr &proxyAddress, const SteamNetworkingIPAddr &addressRemote, int nOptions, const SteamNetworkingConfigValue_t *pOptions, SteamDatagramErrMsg &errMsg )
+{
+	AssertMsg( !m_pTransport, "Trying to connect when we already have a socket?" );
+
+	// We're initiating a connection, not being accepted on a listen socket
+	Assert( !m_pParentListenSocket );
+	Assert( !m_bConnectionInitiatedRemotely );
+  
+  netadr_t proxyAdr;
+	netadr_t netadrRemote;
+
+	SteamNetworkingIPAddrToNetAdr( proxyAdr, proxyAddress );
+  SteamNetworkingIPAddrToNetAdr( netadrRemote, addressRemote );
+
+	// We use identity validity to denote when our connection has been accepted,
+	// so it's important that it be cleared.  (It should already be so.)
+	Assert( m_identityRemote.IsInvalid() );
+	m_identityRemote.Clear();
+
+	// We know what the remote addr will be.
+	m_netAdrRemote = proxyAdr;
+
+	// We should know our own identity, unless the app has said it's OK to go without this.
+	if ( m_identityLocal.IsInvalid() ) // Specific identity hasn't already been set (by derived class, etc)
+	{
+
+		// Use identity from the interface, if we have one
+		m_identityLocal = m_pSteamNetworkingSocketsInterface->InternalGetIdentity();
+		if ( m_identityLocal.IsInvalid())
+		{
+
+			// We don't know who we are.  Should we attempt anonymous?
+			if ( m_connectionConfig.m_IP_AllowWithoutAuth.Get() == 0 )
+			{
+				V_strcpy_safe( errMsg, "Unable to determine local identity, and auth required.  Not logged in?" );
+				return false;
+			}
+
+			m_identityLocal.SetLocalHost();
+		}
+	}
+
+	// Create transport.
+	CConnectionTransportUDP *pTransport = new CConnectionTransportUDP( *this );
+	if ( !pTransport->BConnectWithProxy( proxyAdr, netadrRemote, errMsg ) )
 	{
 		pTransport->TransportDestroySelfNow();
 		return false;
@@ -1015,7 +1097,7 @@ EResult CSteamNetworkConnectionUDP::AcceptConnection()
 void CConnectionTransportUDP::SendMsg( uint8 nMsgID, const google::protobuf::MessageLite &msg )
 {
 
-	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen ];
+	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen + k_cbSteamNetworkingSocketsProxyDataLen];
 	pkt[0] = nMsgID;
 	int cbPkt = ProtoMsgByteSize( msg )+1;
 	if ( cbPkt > sizeof(pkt) )
@@ -1032,11 +1114,11 @@ void CConnectionTransportUDP::SendMsg( uint8 nMsgID, const google::protobuf::Mes
 void CConnectionTransportUDP::SendPaddedMsg( uint8 nMsgID, const google::protobuf::MessageLite &msg )
 {
 
-	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen ];
+	uint8 pkt[ k_cbSteamNetworkingSocketsMaxUDPMsgLen + k_cbSteamNetworkingSocketsProxyDataLen];
 	V_memset( pkt, 0, sizeof(pkt) ); // don't send random bits from our process memory over the wire!
 	UDPPaddedMessageHdr *hdr = (UDPPaddedMessageHdr *)pkt;
 	int nMsgLength = ProtoMsgByteSize( msg );
-	if ( nMsgLength + sizeof(*hdr) > k_cbSteamNetworkingSocketsMaxUDPMsgLen )
+	if ( nMsgLength + (sizeof(*hdr) - k_cbSteamNetworkingSocketsProxyDataLen) > k_cbSteamNetworkingSocketsMaxUDPMsgLen )
 	{
 		AssertMsg3( false, "Msg type %d is %d bytes, larger than MTU of %d bytes", int( nMsgID ), int( nMsgLength + sizeof(*hdr) ), (int)sizeof(pkt) );
 		return;

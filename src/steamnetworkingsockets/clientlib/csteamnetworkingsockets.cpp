@@ -614,6 +614,23 @@ HSteamNetConnection CSteamNetworkingSockets::ConnectByIPAddress( const SteamNetw
 	return pConn->m_hConnectionSelf;
 }
 
+HSteamNetConnection CSteamNetworkingSockets::ConnectByIPAddressWithProxy( const SteamNetworkingIPAddr &proxyAddress, const SteamNetworkingIPAddr &address, int nOptions, const SteamNetworkingConfigValue_t *pOptions )
+{
+	SteamDatagramTransportLock scopeLock( "ConnectByIPAddress" );
+	CSteamNetworkConnectionUDP *pConn = new CSteamNetworkConnectionUDP( this );
+	if ( !pConn )
+		return k_HSteamNetConnection_Invalid;
+	SteamDatagramErrMsg errMsg;
+	if ( !pConn->BInitConnectWithProxy( proxyAddress, address, nOptions, pOptions, errMsg ) )
+	{
+		SpewError( "Cannot create IPv4 connection.  %s", errMsg );
+		pConn->ConnectionDestroySelfNow();
+		return k_HSteamNetConnection_Invalid;
+	}
+
+	return pConn->m_hConnectionSelf;
+}
+
 
 EResult CSteamNetworkingSockets::AcceptConnection( HSteamNetConnection hConn )
 {
