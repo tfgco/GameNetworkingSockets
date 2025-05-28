@@ -113,11 +113,18 @@ $ ninja
 ```
 
 ### Mac OS
+
+- Install protobuf@21 with brew: `brew install protobuf@21`
+
+Run:
 ```
 $ mkdir build-osx
 $ cd build-osx
-$ cmake -G Ninja -DProtobuf_USE_STATIC_LIBS=on -DCMAKE_BUILD_TYPE=MinSizeRel ../
+$ cmake -G Ninja -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/ -DProtobuf_USE_STATIC_LIBS=on -DCMAKE_BUILD_TYPE=MinSizeRel ..
+$ ninja
 ```
+
+Find your libraries at `src/libGameNetworkingSockets.dylib`
 
 ### Android
 Set TFG_PREBUILT_REPO_DIR to the dir where you cloned https://github.com/tfgco/pre-built-public-libs and NDK_DIR and then run:
