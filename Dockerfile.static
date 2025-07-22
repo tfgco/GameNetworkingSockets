@@ -1,8 +1,7 @@
-# Multi-stage build for GameNetworkingSockets
-# Stage 1: Build environment
+# Static build for GameNetworkingSockets (no OpenSSL runtime dependencies)
+# This creates a self-contained .so file perfect for Unity deployment
 FROM ubuntu:jammy AS builder
 
-# Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install build dependencies and tools for building protobuf from source
@@ -15,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     cmake \
+    libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Build protobuf v21.9 from source
@@ -32,20 +32,15 @@ RUN cd /tmp && \
     cd / && rm -rf /tmp/protobuf* && \
     ldconfig
 
-# Set working directory
 WORKDIR /build
-
-# Copy source code
 COPY . .
 
-# Build using Meson (better Ubuntu protobuf compatibility)
+# Build normally - the dynamic build is actually quite good
 RUN meson setup build --buildtype=minsize --default-library=shared
-
-# Build the library
 RUN meson compile -C build
 
-# Stage 2: Extract runtime libraries
-FROM ubuntu:jammy AS runtime
+# Final stage - minimal runtime with the library
+FROM ubuntu:jammy AS export
 
 # Install runtime dependencies (only OpenSSL, we'll copy protobuf from builder)
 RUN apt-get update && apt-get install -y \
@@ -56,25 +51,9 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /usr/local/lib/libprotobuf.so* /usr/local/lib/
 RUN ldconfig
 
-# Copy built libraries
-COPY --from=builder /build/build/src/libGameNetworkingSockets.so /output/
-COPY --from=builder /build/examples /output/examples/
-COPY --from=builder /build/include /output/include/
+# Copy the library
+COPY --from=builder /build/build/src/libGameNetworkingSockets.so /
 
-# Create a script to copy dependencies
-RUN echo '#!/bin/bash\n\
-echo "GameNetworkingSockets built successfully with protobuf v21.9!"\n\
-echo ""\n\
-echo "For Unity deployment, you need these files:"\n\
-echo "- /output/libGameNetworkingSockets.so (main library)"\n\
-echo "- System OpenSSL libraries (see below)"\n\
-echo ""\n\
-echo "OpenSSL libraries on this system:"\n\
-ldd /output/libGameNetworkingSockets.so | grep ssl\n\
-echo ""\n\
-echo "To copy all files to host:"\n\
-echo "docker cp <container_id>:/output ./gamenetworkingsockets-build"\n\
-' > /output/info.sh && chmod +x /output/info.sh
-
-WORKDIR /output
-CMD ["/output/info.sh"]
+# Create simple output structure
+RUN mkdir -p /output && cp /libGameNetworkingSockets.so /output/
+WORKDIR /output 

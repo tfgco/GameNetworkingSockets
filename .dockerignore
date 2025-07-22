@@ -1,1 +1,27 @@
-**
+# Build artifacts
+build/
+build-*/
+unity-build/
+unity-build-static/
+
+# Version control
+.git/
+.gitignore
+
+# IDE/Editor files
+.vscode/
+*.code-workspace
+.DS_Store
+
+# Documentation (optional - remove these lines if you want docs in the image)
+README.md
+BUILDING.md
+UNITY_DEPLOYMENT.md
+
+# Scripts (we don't need these in the container)
+build-unity.sh
+build-unity-static.sh
+
+# Docker files
+Dockerfile*
+.dockerignore
