@@ -3,7 +3,7 @@ include(CheckCXXCompilerFlag)
 include(CheckSymbolExists)
 include(CMakePushCheckState)
 
-find_package(Protobuf CONFIG REQUIRED)
+find_package(Protobuf REQUIRED)
 if (NOT USE_BCRYPT)
 	find_package(OpenSSL REQUIRED)
 
@@ -133,12 +133,7 @@ if(NOT SANITIZE_UNDEFINED)
 	)
 endif()
 
-protobuf_generate(
-	LANGUAGE cpp
-	OUT_VAR GNS_PROTO_SRCS
-	PROTOS ${GNS_PROTOS}
-	IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/common"
-)
+protobuf_generate_cpp(GNS_PROTO_SRCS GNS_PROTO_HDRS ${GNS_PROTOS})
 
 macro(gamenetworkingsockets_common GNS_TARGET)
 
@@ -153,10 +148,15 @@ macro(gamenetworkingsockets_common GNS_TARGET)
 	target_include_directories(${GNS_TARGET} PRIVATE
 		"common"
 		"public"
+
+		# Only necessary if we're not using protobuf::libprotobuf
+		# But that's not supported until CMake 3.9
+		${Protobuf_INCLUDE_DIRS}
 	)
 
 	target_link_libraries(${GNS_TARGET} PUBLIC
-		protobuf::libprotobuf-lite
+		#protobuf::libprotobuf-lite
+		${Protobuf_LITE_LIBRARIES}
 		Threads::Threads
 	)
 

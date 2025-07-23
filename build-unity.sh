@@ -6,11 +6,12 @@
 set -e
 
 echo "🚀 Building GameNetworkingSockets (.so) for Unity..."
-echo "OpenSSL 1.1.1b + protobuf v21.9 + CMake + ubuntu:jammy"
+echo "OpenSSL 1.1.1b + protobuf 3.7.0 (STATICALLY LINKED) + CMake + ubuntu:jammy"
+echo "✅ No protobuf conflicts - symbols are hidden!"
 
 # Build the Docker image
 echo "📦 Building Docker image..."
-docker build --platform linux/amd64 --no-cache -t gamenetworkingsockets-build .
+docker build --platform linux/amd64 -t gamenetworkingsockets-build .
 
 # Run the container and get the container ID
 echo "🔨 Running build..."
