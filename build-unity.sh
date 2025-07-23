@@ -6,8 +6,7 @@
 set -e
 
 echo "🚀 Building GameNetworkingSockets (.so) for Unity..."
-echo "OpenSSL 1.1.1b + protobuf 3.7.0 (STATICALLY LINKED) + CMake + ubuntu:jammy"
-echo "✅ No protobuf conflicts - symbols are hidden!"
+echo "OpenSSL 1.1.1b + protobuf 3.7.0 (BOTH STATICALLY LINKED) + CMake + ubuntu:jammy"
 
 # Build the Docker image
 echo "📦 Building Docker image..."
